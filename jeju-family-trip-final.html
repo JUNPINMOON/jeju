@@ -63,17 +63,30 @@
   .stop{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:9px;box-shadow:var(--shadow);border-left:4px solid var(--teal);transition:.12s}
   .stop.meal{border-left-color:var(--meal);background:#fff8f2}
   .stop.on{outline:2px solid var(--teal);outline-offset:1px}
-  .stop .hd{display:flex;align-items:flex-start;gap:9px;cursor:pointer}
+  .stop .hd{display:flex;align-items:flex-start;gap:9px;cursor:pointer;width:100%;min-height:44px;border:0;background:transparent;padding:0;text-align:left;color:inherit;font:inherit}
+  .stop .hd:focus-visible,.stop-tab:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
   .stop .num{flex:none;width:24px;height:24px;border-radius:50%;background:var(--teal);color:#fff;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
   .stop.meal .num{background:var(--meal)}
-  .stop .ttl{font-weight:800;font-size:14px}
+  .stop .titlecopy{min-width:0;flex:1}
+  .stop .ttl{display:block;font-weight:800;font-size:14px}
   .stop .badge{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:6px;margin-left:5px;vertical-align:1px}
   .badge.ok{background:#dcf3ea;color:var(--ok)}
   .badge.warn{background:#fbecd6;color:var(--warn)}
   .badge.indoor{background:#dde8fc;color:var(--indoor)}
   .badge.meal{background:#fbe4d1;color:var(--meal)}
-  .stop .kind{font-size:11.5px;color:var(--muted);margin-top:1px}
-  .stop .desc{font-size:12px;color:#465563;margin-top:7px}
+  .stop .kind{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
+  .stop .detailhint{margin-left:auto;padding-top:3px;color:var(--teal-d);font-size:10.5px;font-weight:800;white-space:nowrap}
+  .stop .detailhint .chev{display:inline-block;margin-left:2px;transition:transform .12s}
+  .stop .hd[aria-expanded="true"] .detailhint .chev{transform:rotate(180deg)}
+  .stop-detail[hidden]{display:none}
+  .stop-tabs{display:flex;gap:5px;border-bottom:1px solid var(--line);margin-top:9px}
+  .stop-tab{border:0;background:transparent;padding:7px 9px 6px;color:var(--muted);font:inherit;font-size:11.5px;font-weight:800;cursor:pointer;border-bottom:2px solid transparent}
+  .stop-tab[aria-selected="true"]{color:var(--teal);border-bottom-color:var(--teal)}
+  .stop-panel{font-size:13px;color:#465563;padding-top:8px}
+  .stop-tip{background:#f0f8f6;border-radius:8px;padding:8px 9px;margin-top:8px;color:#31534e}
+  .stop-tip b{color:var(--teal-d)}
+  .stop-tip p{margin:0}
+  .stop-tip .tip-source{display:inline-block;margin-top:7px;font-size:11px;font-weight:800;color:var(--teal-d)}
   .verify{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:#0b5b52;background:#e2f2ef;
     border:1px solid #bfe0da;border-radius:7px;padding:3px 8px;margin-top:8px}
   .access{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:#1746a2;background:#e6edfb;
@@ -118,7 +131,7 @@
   <div class="wx" id="wxStrip"></div>
 </header>
 
-<div class="srcbar">✅ 처음 작성한 일정 기준 · <b>2일차·3일차는 비/맑음 토글</b>로 확인 · 부모님 동행이라 걷기·택시·공항 이동 여유를 우선했어요.</div>
+<div class="srcbar">✅ 1일차는 <b>공항 → 동문시장 → 숙소</b>로 정리 · 해녀김밥은 함덕 별도 선택 · 2일차·3일차는 <b>비/맑음 토글</b>로 확인하세요.</div>
 
 <div class="tabs" id="tabs">
   <button data-day="1" class="active">1일차<span class="d">7/23 목</span></button>
@@ -155,7 +168,7 @@
 
 <footer>
   <b>출발 전 확인</b> · 지도는 OpenStreetMap(지도)·Esri(위성). 비가 오면 2·3일차의 🌧 경로를, 날이 개면 ☀️ 경로를 선택하세요.
-  숙소 짐 보관·카카오T 호출·매장 영업시간·공항 이동 시간은 당일 다시 확인. · 핀/카드 탭 → 위치 이동, 링크 버튼 → 지도 앱 열림.
+  숙소 짐 보관·카카오T 호출·매장 영업시간·공항 이동 시간은 당일 다시 확인. · 카드 제목 → 지도 핀 이동·일정/꿀팁 열기, 링크 버튼 → 지도 앱 열림.
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -165,41 +178,65 @@ var BASE = {name:"숙소 (선흘리)", short:"숙소", glyph:"🏠", lat:33.5127
 var AIRPORT = {name:"제주국제공항", short:"공항", glyph:"✈", lat:33.5070772, lng:126.4934311, search:"제주국제공항"};
 
 var WX = [
-  {d:"7/23 목", e:"🌧️", c:"비 대비", t:"함덕 산책은 날이 개면"},
+  {d:"7/23 목", e:"🌧️", c:"비 대비", t:"동문시장 도착 시간 확인"},
   {d:"7/24 금", e:"🌧️", c:"비 대비", t:"비/맑음 경로 선택"},
   {d:"7/25 토", e:"🌧️", c:"비 대비", t:"공항 이동 여유"}
 ];
 
 var DATA = {
-  1:{ date:"7/23 (목)", theme:"도착 반나절 · 함덕", wx:WX[0], flight:"✈️ 오후 제주 도착 → 선흘리 숙소 체크인",
-    note:"첫날은 함덕만 가볍게. 비가 오면 델문도부터, 날이 개면 함덕해수욕장을 먼저 짧게 걷습니다.",
+  1:{ date:"7/23 (목)", theme:"도착 · 공항 → 동문시장", wx:WX[0], flight:"✈️ 오후 제주 도착 → 공항 근처 점심 → 동문시장 → 선흘리 숙소 체크인",
+    note:"첫날은 공항·시내만 가볍게 봅니다. 동문시장은 일반 시장과 야시장 중 도착 시각에 맞는 쪽만 고르고 숙소로 이동하세요.",
     tracks:{ main:[
-      {n:1,emoji:"🏖",name:"함덕해수욕장",kind:"날이 개면 · 짧은 바다 산책",lat:33.5434231,lng:126.6697752,badge:["ok","맑으면"],desc:"숙소 체크인 뒤 들르는 선택 코스. 비가 오면 건너뛰고 카페로 바로 이동합니다."},
-      {n:2,emoji:"☕",name:"카페 델문도",kind:"16:30 · 함덕 바다뷰 카페",lat:33.5437787,lng:126.6688353,search:"카페 델문도 함덕",badge:["ok","휴식"],desc:"바다를 보며 쉬는 시간. 부모님 컨디션을 보고 저녁 식사 전까지 여유 있게 머뭅니다."},
-      {n:3,emoji:"🍖",name:"제주삼춘",kind:"18:30 · 함덕 흑돼지 저녁",lat:33.5413331,lng:126.6699438,search:"제주삼춘 함덕",badge:["meal","저녁"],
-        desc:"저녁 뒤에는 숙소로 바로 복귀합니다. 대기 여부와 영업시간은 출발 전에 지도에서 한 번 확인하세요.",
-        meal:true}
+      {n:1,emoji:"🍲",name:"공항 근처 점심",kind:"도착 후 · 당일 컨디션에 맞춰 선택",lat:33.5070772,lng:126.4934311,search:"제주공항 근처 점심",badge:["meal","점심"],desc:"착륙·수하물 뒤 바로 한 끼. 가게를 고정하지 않아 항공편이 늦어져도 첫날 동선이 흔들리지 않습니다.",meal:true,
+        tip:"가게를 한 곳으로 고정하지 않은 첫 끼예요. 도착 뒤 지도에서 대기·영업 여부를 보고 고르고, 줄이 길면 바로 다음 후보로 바꾸세요. 부모님 동행이면 먼 맛집 우회보다 식사 후 동문시장으로 바로 가는 편이 편합니다."},
+      {n:2,emoji:"🛍",name:"동문시장",kind:"점심 후 · 시장 구경·간식·포장",lat:33.5116033,lng:126.5260192,search:"동문재래시장",badge:["ok","시장"],desc:"공항에서 시내로 이어지는 첫날 정류장. 간식·선물을 한 번에 보고 필요한 것만 포장한 뒤 숙소로 이동합니다.",
+        tip:"상설시장은 07:00–21:00, 5~10월 야시장은 19:00–24:00으로 안내돼요. 재료가 소진되면 일찍 끝날 수 있으니 늦게 도착하면 야시장만 믿지 마세요. 여행 후기에서 자주 보이는 실전 팁은 먹을 것·선물 1~2가지만 먼저 정해 포장하는 것—숙소까지 들고 갈 양과 보냉이 필요한지부터 보세요.",
+        source:{label:"공식 운영 안내 · Visit Jeju",href:"https://www.visitjeju.net/kr/detail/view?contentsid=CONT_000000000500745"}}
     ]}
   },
   2:{ date:"7/24 (금)", theme:"동부 · 비/맑음 선택", wx:WX[1], flight:null,
-    note:"🌧 비가 오면 실내·숲길 위주, ☀️ 날이 개면 용눈이오름·월정리·성산일출봉으로 전환합니다. 저녁은 성산에서 갈치조림으로 고정.",
+    note:"해녀김밥 본점은 함덕에 있어 첫날 공항·동문시장과 분리했습니다. 운영이 확인되면 09:00 전후에 포장하고, 대기·휴무면 바로 만장굴로 이동하세요.",
     tracks:{
       rain:[
-        {n:1,emoji:"🕳",name:"만장굴",kind:"10:00 · 용암동굴",lat:33.5282463,lng:126.7702874,badge:["warn","미끄럼 주의"],desc:"동굴이라 비가 와도 괜찮습니다. 안쪽 계단과 젖은 바닥에서는 난간을 잡고 천천히 이동하세요."},
-        {n:2,emoji:"🌳",name:"비자림",kind:"11:30 · 우산 쓰는 숲길 산책",lat:33.484272,lng:126.8064793,badge:["ok","평지"],desc:"비가 약하면 우산을 쓰고 짧게 걷습니다. 부모님 컨디션이 좋지 않으면 산책 시간을 줄이세요."},
-        {n:3,emoji:"🍜",name:"배롱개",kind:"13:00 · 월정리 점심",lat:33.5578030,lng:126.7944544,search:"배롱개 월정리",badge:["meal","점심"],desc:"점심 뒤 월정리 카페로 이어집니다.",meal:true},
-        {n:4,emoji:"☕",name:"모래비",kind:"13:00 이후 · 월정리 카페",lat:33.5551539,lng:126.7950438,search:"모래비 월정리",badge:["ok","휴식"],desc:"점심과 카페를 한 동선으로 묶어 비 오는 오후에 쉬어 갑니다."},
-        {n:5,emoji:"🌸",name:"수퍼플라워 제주",kind:"15:00 · 실내 플라워 디저트 카페",lat:33.5535978,lng:126.7155939,search:"수퍼플라워 제주",badge:["indoor","실내"],desc:"비가 강할 때 머무르기 좋은 실내 선택지입니다."},
-        {n:6,emoji:"☕",name:"스타벅스 성산일출봉점",kind:"16:30 · 성산 뷰 휴식",lat:33.458056,lng:126.9425,search:"스타벅스 성산일출봉점",badge:["ok","휴식"],desc:"2층에서 성산일출봉 쪽을 보며 쉬었다가 저녁 식사로 이동합니다."},
-        {n:7,emoji:"🐟",name:"성산 바다갈치",kind:"18:30 · 갈치조림 저녁",lat:33.4357387,lng:126.9129643,search:"성산 바다갈치",badge:["meal","저녁"],desc:"저녁 뒤 선흘리 숙소로 돌아갑니다.",meal:true}
+        {n:1,emoji:"🍙",name:"해녀김밥 본점",kind:"09:00 전후 · 함덕 포장 (당일 확인)",lat:33.5425589,lng:126.665241,search:"해녀김밥 본점",badge:["meal","아침"],desc:"함덕에서 간단히 포장하고 동부로 출발하는 선택 정류장입니다. 운영이나 대기가 애매하면 생략하고 만장굴로 바로 갑니다.",meal:true,
+          tip:"본점 주소는 함덕로 40, 3층 302호예요. 공항→동문시장 직선 동선에는 넣지 않았습니다. 공개 영업시간 표기가 서로 달라 출발 직전에 지도·전화로 확인되고 대기가 없을 때만 들르세요. 확인이 안 되면 일정에 미련 두지 말고 만장굴로 바로 이동합니다.",
+          source:{label:"위치 안내 · Visit Jeju",href:"https://www.visitjeju.net/kr/detail/view?contentsid=CNTS_200000000012606"}},
+        {n:2,emoji:"🕳",name:"만장굴",kind:"10:15 전후 · 용암동굴",lat:33.5548185,lng:126.7969015,badge:["warn","미끄럼 주의"],desc:"동굴이라 비가 와도 괜찮습니다. 안쪽 계단과 젖은 바닥에서는 난간을 잡고 천천히 이동하세요.",
+          tip:"공식 안내상 첫째 수요일은 휴관이고 입장 마감은 17:00예요. 2026년 5월에 정상 운영이 재개됐지만, 비 오는 날에는 바닥이 더 미끄러울 수 있습니다. 우산은 입구에서 정리하고 난간을 잡으며 천천히 보세요.",
+          source:{label:"공식 운영 안내 · Visit Jeju",href:"https://www.visitjeju.net/kr/detail/view?contentsid=CONT_000000000500182"}},
+        {n:3,emoji:"🌳",name:"비자림",kind:"11:50 전후 · 우산 쓰는 숲길 산책",lat:33.484272,lng:126.8064793,badge:["ok","평지"],desc:"비가 약하면 우산을 쓰고 짧게 걷습니다. 부모님 컨디션이 좋지 않으면 산책 시간을 줄이세요.",
+          tip:"연중 개방·입장 마감 17:00으로 안내돼요. 비가 강하면 전체 코스를 고집하지 말고 평탄한 구간만 짧게 보고 나오세요. 우산보다 미끄럼 방지 신발과 여벌 양말이 더 실용적입니다.",
+          source:{label:"공식 운영 안내 · Visit Jeju",href:"https://www.visitjeju.net/kr/detail/view?contentsid=CONT_000000000500270"}},
+        {n:4,emoji:"🍜",name:"배롱개",kind:"13:00 · 월정리 점심",lat:33.5578030,lng:126.7944544,search:"배롱개 월정리",badge:["meal","점심"],desc:"점심 뒤 월정리 카페로 이어집니다.",meal:true,
+          tip:"점심 뒤 카페까지 같은 권역으로 묶은 날이에요. 대기가 길면 카페 시간이 줄어드니, 기다림이 길어지면 다음 식사 후보로 바꾸고 월정리에서 쉬는 시간을 지키세요."},
+        {n:5,emoji:"☕",name:"모래비",kind:"점심 이후 · 월정리 카페",lat:33.5551539,lng:126.7950438,search:"모래비 월정리",badge:["ok","휴식"],desc:"점심과 카페를 한 동선으로 묶어 비 오는 오후에 쉬어 갑니다.",
+          tip:"식사 후 바로 가는 휴식 정류장입니다. 비가 세면 해변을 억지로 보지 말고 카페에서 우산·겉옷을 정리한 뒤 다음 이동을 결정하세요. 좌석 대기가 길면 가까운 다른 카페로 바꿔도 동선 손실이 작습니다."},
+        {n:6,emoji:"🌸",name:"수퍼플라워 제주",kind:"15:00 · 실내 플라워 디저트 카페",lat:33.5535978,lng:126.7155939,search:"수퍼플라워 제주",badge:["indoor","실내"],desc:"비가 강할 때 머무르기 좋은 실내 선택지입니다.",
+          tip:"비가 강할 때만 쓰는 실내 완충 카드예요. 출발 전 영업·휴무를 확인하고, 월정리에서 이미 충분히 쉬었다면 이곳은 과감히 생략해 성산 쪽 이동 시간을 남기세요."},
+        {n:7,emoji:"☕",name:"스타벅스 성산일출봉점",kind:"16:30 · 성산 뷰 휴식",lat:33.458056,lng:126.9425,search:"스타벅스 성산일출봉점",badge:["ok","휴식"],desc:"2층에서 성산일출봉 쪽을 보며 쉬었다가 저녁 식사로 이동합니다.",
+          tip:"비·구름이 짙으면 전망보다 휴식 목적에 맞춰 짧게 머무르세요. 좌석 대기가 길면 테이크아웃으로 바꾸고 저녁 식사 시간을 앞당기는 편이 부모님 체력에 더 낫습니다."},
+        {n:8,emoji:"🐟",name:"성산 바다갈치",kind:"18:30 · 갈치조림 저녁",lat:33.4357387,lng:126.9129643,search:"성산 바다갈치",badge:["meal","저녁"],desc:"저녁 뒤 선흘리 숙소로 돌아갑니다.",meal:true,
+          tip:"저녁은 대기·마감 변수가 큰 시간대예요. 출발 전에 대기와 영업 여부를 확인하고, 길어지면 성산권 갈치조림 후보 하나를 지도에 미리 저장해 두세요."}
       ],
       clear:[
-        {n:1,emoji:"🕳",name:"만장굴",kind:"10:00 · 용암동굴",lat:33.5282463,lng:126.7702874,badge:["warn","미끄럼 주의"],desc:"오전에는 동굴부터 봅니다. 입구와 안쪽 계단에서만 천천히 이동하세요."},
-        {n:2,emoji:"🌋",name:"용눈이오름",kind:"11:30 · 완만한 억새길",lat:33.4599676,lng:126.831477,badge:["warn","20분 산책"],desc:"비자림 대신 선택하는 짧은 오름 산책입니다. 바람이 세거나 컨디션이 애매하면 생략하세요."},
-        {n:3,emoji:"🍜",name:"배롱개",kind:"13:00 · 월정리 점심",lat:33.5578030,lng:126.7944544,search:"배롱개 월정리",badge:["meal","점심"],desc:"점심 뒤 해변과 카페를 가까운 곳에서 이어갑니다.",meal:true},
-        {n:4,emoji:"🏖",name:"월정리해변 + 오늘도화창",kind:"15:00 · 해변 산책·카페",lat:33.5559739,lng:126.7961709,search:"오늘도화창 월정리",badge:["ok","평지"],desc:"수퍼플라워 대신 선택. 오래 걷지 말고 해변을 짧게 본 뒤 카페에서 쉬세요."},
-        {n:5,emoji:"⛰",name:"성산일출봉",kind:"16:30 · 맑으면 등반",lat:33.458056,lng:126.9425,badge:["warn","계단"],desc:"맑고 컨디션이 좋을 때만 오릅니다. 부모님이 힘들면 정상 대신 주변만 보고 저녁으로 이동하세요."},
-        {n:6,emoji:"🐟",name:"성산 바다갈치",kind:"18:30 · 갈치조림 저녁",lat:33.4357387,lng:126.9129643,search:"성산 바다갈치",badge:["meal","저녁"],desc:"저녁 뒤 선흘리 숙소로 돌아갑니다.",meal:true}
+        {n:1,emoji:"🍙",name:"해녀김밥 본점",kind:"09:00 전후 · 함덕 포장 (당일 확인)",lat:33.5425589,lng:126.665241,search:"해녀김밥 본점",badge:["meal","아침"],desc:"함덕에서 간단히 포장하고 동부로 출발하는 선택 정류장입니다. 운영이나 대기가 애매하면 생략하고 만장굴로 바로 갑니다.",meal:true,
+          tip:"본점 주소는 함덕로 40, 3층 302호예요. 공항→동문시장 직선 동선에는 넣지 않았습니다. 공개 영업시간 표기가 서로 달라 출발 직전에 지도·전화로 확인되고 대기가 없을 때만 들르세요. 확인이 안 되면 일정에 미련 두지 말고 만장굴로 바로 이동합니다.",
+          source:{label:"위치 안내 · Visit Jeju",href:"https://www.visitjeju.net/kr/detail/view?contentsid=CNTS_200000000012606"}},
+        {n:2,emoji:"🕳",name:"만장굴",kind:"10:15 전후 · 용암동굴",lat:33.5548185,lng:126.7969015,badge:["warn","미끄럼 주의"],desc:"오전에는 동굴부터 봅니다. 입구와 안쪽 계단에서만 천천히 이동하세요.",
+          tip:"공식 안내상 첫째 수요일은 휴관이고 입장 마감은 17:00예요. 2026년 5월에 정상 운영이 재개됐지만, 비 오는 날에는 바닥이 더 미끄러울 수 있습니다. 우산은 입구에서 정리하고 난간을 잡으며 천천히 보세요.",
+          source:{label:"공식 운영 안내 · Visit Jeju",href:"https://www.visitjeju.net/kr/detail/view?contentsid=CONT_000000000500182"}},
+        {n:3,emoji:"🌋",name:"용눈이오름",kind:"11:50 전후 · 완만한 억새길",lat:33.4599676,lng:126.831477,badge:["warn","20분 산책"],desc:"비자림 대신 선택하는 짧은 오름 산책입니다. 바람이 세거나 컨디션이 애매하면 생략하세요.",
+          tip:"공식 안내상 자연휴식년 제한은 해제됐지만 일부 오름은 접근 조건이 바뀔 수 있어 당일 확인이 필요해요. 바람·빗물·부모님 컨디션 중 하나라도 애매하면 비자림이나 월정리 카페로 바로 전환하세요.",
+          source:{label:"방문 전 접근 확인 · Visit Jeju",href:"https://www.visitjeju.net/kr/detail/view?contentsid=CONT_000000000500466"}},
+        {n:4,emoji:"🍜",name:"배롱개",kind:"13:00 · 월정리 점심",lat:33.5578030,lng:126.7944544,search:"배롱개 월정리",badge:["meal","점심"],desc:"점심 뒤 해변과 카페를 가까운 곳에서 이어갑니다.",meal:true,
+          tip:"점심 뒤 카페까지 같은 권역으로 묶은 날이에요. 대기가 길면 카페 시간이 줄어드니, 기다림이 길어지면 다음 식사 후보로 바꾸고 월정리에서 쉬는 시간을 지키세요."},
+        {n:5,emoji:"🏖",name:"월정리해변 + 오늘도화창",kind:"15:00 · 해변 산책·카페",lat:33.5559739,lng:126.7961709,search:"오늘도화창 월정리",badge:["ok","평지"],desc:"수퍼플라워 대신 선택. 오래 걷지 말고 해변을 짧게 본 뒤 카페에서 쉬세요.",
+          tip:"해변은 바람이 세면 사진 몇 장만 남기고 카페로 바로 들어가도 충분해요. 주차·바람·피로가 부담되면 한 장소에서만 쉬고 성산으로 먼저 이동하세요."},
+        {n:6,emoji:"⛰",name:"성산일출봉",kind:"16:30 · 맑으면 등반",lat:33.458056,lng:126.9425,badge:["warn","계단"],desc:"맑고 컨디션이 좋을 때만 오릅니다. 부모님이 힘들면 정상 대신 주변만 보고 저녁으로 이동하세요.",
+          tip:"여름은 04:30–20:00, 매표 마감 19:00이며 매월 첫 월요일은 휴관으로 안내돼요. 정상 완주가 목표가 아니라 중간까지 보고 내려와도 충분합니다. 비·강풍이면 바로 성산 카페로 전환하세요.",
+          source:{label:"공식 운영 안내 · Visit Jeju",href:"https://www.visitjeju.net/kr/detail/view?contentsid=CONT_000000000500349"}},
+        {n:7,emoji:"🐟",name:"성산 바다갈치",kind:"18:30 · 갈치조림 저녁",lat:33.4357387,lng:126.9129643,search:"성산 바다갈치",badge:["meal","저녁"],desc:"저녁 뒤 선흘리 숙소로 돌아갑니다.",meal:true,
+          tip:"저녁은 대기·마감 변수가 큰 시간대예요. 출발 전에 대기와 영업 여부를 확인하고, 길어지면 성산권 갈치조림 후보 하나를 지도에 미리 저장해 두세요."}
       ]
     }
   },
@@ -207,17 +244,28 @@ var DATA = {
     note:"숙소 체크아웃 뒤 짐 보관 여부를 먼저 확인합니다. 🌧 비가 세면 길갈팜을 빼고 실내 일정으로, ☀️ 날이 개면 샤이니숲길·제동목장을 더합니다.",
     tracks:{
       rain:[
-        {n:1,emoji:"🦙",name:"길갈팜",kind:"10:30 · 알파카 먹이·수제버거 점심",lat:33.4274625,lng:126.6721849,search:"길갈팜랜드",badge:["meal","점심"],desc:"비가 약할 때 선택. 알파카 먹이주기와 카페 말로, 수제버거 점심을 한곳에서 해결합니다.",meal:true},
-        {n:2,emoji:"🖼",name:"아라리오뮤지엄 동문모텔 II",kind:"13:30 · 제주시 실내",lat:33.5163,lng:126.5286,search:"아라리오뮤지엄 동문모텔2",badge:["indoor","실내"],desc:"비가 세면 길갈팜을 건너뛰고 이곳부터 시작합니다. 숙소 짐 보관이 안 되면 이 일정은 생략하세요."},
-        {n:3,emoji:"☕",name:"함덕 델문도 또는 제주시내 카페",kind:"15:00 · 공항 전 휴식",lat:33.5437787,lng:126.6688353,search:"카페 델문도 함덕",badge:["ok","휴식"],desc:"토요일 저녁 공항 혼잡을 고려해 카페 한 곳에서 쉬다가 공항으로 이동합니다."},
-        {n:4,emoji:"✈",name:"제주국제공항",kind:"18:15 전후 · 여유 있게 도착",lat:33.5070772,lng:126.4934311,search:"제주국제공항",badge:["warn","출발"],desc:"수속과 탑승구 이동 시간을 넉넉하게 남깁니다."}
+        {n:1,emoji:"🦙",name:"길갈팜",kind:"10:30 · 알파카 먹이·수제버거 점심",lat:33.4274625,lng:126.6721849,search:"길갈팜랜드",badge:["meal","점심"],desc:"비가 약할 때 선택. 알파카 먹이주기와 카페 말로, 수제버거 점심을 한곳에서 해결합니다.",meal:true,
+          tip:"알파카 먹이 체험은 날씨와 현장 운영에 따라 달라질 수 있어요. 도착 직전에 진행 여부를 보고, 비가 세면 카페·점심만 이용하거나 뮤지엄부터 시작해도 됩니다."},
+        {n:2,emoji:"🖼",name:"아라리오뮤지엄 동문모텔 II",kind:"13:30 · 제주시 실내",lat:33.5163,lng:126.5286,search:"아라리오뮤지엄 동문모텔2",badge:["indoor","실내"],desc:"비가 세면 길갈팜을 건너뛰고 이곳부터 시작합니다. 숙소 짐 보관이 안 되면 이 일정은 생략하세요.",
+          tip:"제주관은 10:00–19:00, 입장 마감 18:00이며 월요일 휴관으로 안내돼요. 비 영향은 적지만 짐 보관이 안 되면 관람이 불편하니 체크아웃 전에 먼저 확인하세요.",
+          source:{label:"공식 관람 안내 · ARARIO MUSEUM",href:"https://www.arariomuseum.org/m/page/VISITINGINFO_HOURS.php"}},
+        {n:3,emoji:"☕",name:"함덕 델문도 또는 제주시내 카페",kind:"15:00 · 공항 전 휴식",lat:33.5437787,lng:126.6688353,search:"카페 델문도 함덕",badge:["ok","휴식"],desc:"토요일 저녁 공항 혼잡을 고려해 카페 한 곳에서 쉬다가 공항으로 이동합니다.",
+          tip:"공항 전 완충 시간이에요. 함덕으로 갈지 시내 카페로 갈지는 공항까지 남은 시간·비 강도로 고르고, 두 곳을 모두 들르지 마세요. 택시가 바로 잡히지 않으면 쉬는 시간을 줄이고 일찍 출발합니다."},
+        {n:4,emoji:"✈",name:"제주국제공항",kind:"18:15 전후 · 여유 있게 도착",lat:33.5070772,lng:126.4934311,search:"제주국제공항",badge:["warn","출발"],desc:"수속과 탑승구 이동 시간을 넉넉하게 남깁니다.",
+          tip:"카페에서 너무 오래 기다리지 말고, 카카오T 배차가 불안하면 바로 공항으로 이동하세요. 수하물·탑승구·저녁 혼잡을 고려해 18:15 전후 도착 목표는 그대로 지키는 편이 안전합니다."}
       ],
       clear:[
-        {n:1,emoji:"🌲",name:"샤이니숲길",kind:"10:30 · 삼나무 사진길",lat:33.4275002,lng:126.6617022,badge:["ok","짧게"],desc:"맑으면 교래 풀코스의 첫 정류장입니다. 오래 걷기보다 사진을 찍고 짧게 둘러봅니다."},
-        {n:2,emoji:"🐄",name:"제동목장",kind:"11:10 · 삼나무 진입로",lat:33.4197479,lng:126.6965183,badge:["ok","사진"],desc:"차에서 내리는 시간은 짧게 잡고 길갈팜으로 이동합니다."},
-        {n:3,emoji:"🦙",name:"길갈팜",kind:"11:40 · 알파카·카페 말로·수제버거",lat:33.4274625,lng:126.6721849,search:"길갈팜랜드",badge:["meal","점심"],desc:"알파카 먹이주기와 카페 말로, 수제버거 점심을 한곳에서 해결합니다.",meal:true},
-        {n:4,emoji:"🖼",name:"아라리오뮤지엄 동문모텔 II",kind:"13:30 · 제주시 실내",lat:33.5163,lng:126.5286,search:"아라리오뮤지엄 동문모텔2",badge:["indoor","실내"],desc:"짐을 찾은 뒤 제주시로 이동합니다. 숙소 짐 보관이 안 되면 이 일정은 생략하세요."},
-        {n:5,emoji:"✈",name:"제주국제공항",kind:"18:15 전후 · 여유 있게 도착",lat:33.5070772,lng:126.4934311,search:"제주국제공항",badge:["warn","출발"],desc:"수속과 탑승구 이동 시간을 넉넉하게 남깁니다."}
+        {n:1,emoji:"🌲",name:"샤이니숲길",kind:"10:30 · 삼나무 사진길",lat:33.4275002,lng:126.6617022,badge:["ok","짧게"],desc:"맑으면 교래 풀코스의 첫 정류장입니다. 오래 걷기보다 사진을 찍고 짧게 둘러봅니다.",
+          tip:"사진을 위한 짧은 정류장으로만 잡았어요. 비 온 뒤에는 길이 젖을 수 있으니 오래 걷기보다 10~15분 안에 사진을 보고 다음 장소로 이동하세요."},
+        {n:2,emoji:"🐄",name:"제동목장",kind:"11:10 · 삼나무 진입로",lat:33.4197479,lng:126.6965183,badge:["ok","사진"],desc:"차에서 내리는 시간은 짧게 잡고 길갈팜으로 이동합니다.",
+          tip:"현장 표지와 차량 통행을 우선하세요. 갓길에 오래 머무르지 말고 사진만 짧게 찍은 뒤 이동하면 부모님도 덜 피곤하고 다음 점심 시간이 밀리지 않습니다."},
+        {n:3,emoji:"🦙",name:"길갈팜",kind:"11:40 · 알파카·카페 말로·수제버거",lat:33.4274625,lng:126.6721849,search:"길갈팜랜드",badge:["meal","점심"],desc:"알파카 먹이주기와 카페 말로, 수제버거 점심을 한곳에서 해결합니다.",meal:true,
+          tip:"알파카 먹이 체험은 날씨와 현장 운영에 따라 달라질 수 있어요. 도착 직전에 진행 여부를 보고, 비가 세면 카페·점심만 이용하거나 뮤지엄부터 시작해도 됩니다."},
+        {n:4,emoji:"🖼",name:"아라리오뮤지엄 동문모텔 II",kind:"13:30 · 제주시 실내",lat:33.5163,lng:126.5286,search:"아라리오뮤지엄 동문모텔2",badge:["indoor","실내"],desc:"짐을 찾은 뒤 제주시로 이동합니다. 숙소 짐 보관이 안 되면 이 일정은 생략하세요.",
+          tip:"제주관은 10:00–19:00, 입장 마감 18:00이며 월요일 휴관으로 안내돼요. 비 영향은 적지만 짐 보관이 안 되면 관람이 불편하니 체크아웃 전에 먼저 확인하세요.",
+          source:{label:"공식 관람 안내 · ARARIO MUSEUM",href:"https://www.arariomuseum.org/m/page/VISITINGINFO_HOURS.php"}},
+        {n:5,emoji:"✈",name:"제주국제공항",kind:"18:15 전후 · 여유 있게 도착",lat:33.5070772,lng:126.4934311,search:"제주국제공항",badge:["warn","출발"],desc:"수속과 탑승구 이동 시간을 넉넉하게 남깁니다.",
+          tip:"카페에서 너무 오래 기다리지 말고, 카카오T 배차가 불안하면 바로 공항으로 이동하세요. 수하물·탑승구·저녁 혼잡을 고려해 18:15 전후 도착 목표는 그대로 지키는 편이 안전합니다."}
       ]
     }
   }
@@ -225,6 +273,7 @@ var DATA = {
 
 function naverLink(s){ return "https://map.naver.com/p/search/"+encodeURIComponent(s.search||s.name); }
 function kakaoLink(s){ return "https://map.kakao.com/link/map/"+encodeURIComponent(s.name)+","+s.lat+","+s.lng; }
+function esc(v){ return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
 
 var state={day:1,track:"main"};
 var map=null, layer=null, markers=[], curBase=null, mapOK=false;
@@ -240,37 +289,90 @@ function renderList(){
   var d=DATA[state.day], stops=activeStops(), col=trackColor();
   document.getElementById("toggle").className = (state.day===2||state.day===3)?"toggle show":"toggle";
   document.getElementById("dayhead").innerHTML =
-    '<div class="row"><span class="theme">'+d.date+' · '+d.theme+'</span>'+
-    '<span class="wxmini">'+d.wx.e+' '+d.wx.c+' · '+d.wx.t+'</span></div>'+
-    (d.flight?'<div class="flight">'+d.flight+'</div>':'')+
-    '<div class="note">'+d.note+'</div>';
+    '<div class="row"><span class="theme">'+esc(d.date)+' · '+esc(d.theme)+'</span>'+
+    '<span class="wxmini">'+esc(d.wx.e)+' '+esc(d.wx.c)+' · '+esc(d.wx.t)+'</span></div>'+
+    (d.flight?'<div class="flight">'+esc(d.flight)+'</div>':'')+
+    '<div class="note">'+esc(d.note)+'</div>';
   var html="";
   for(var i=0;i<stops.length;i++){ var s=stops[i];
     var mealCls = s.meal ? " meal" : "";
     var borderCol = s.meal ? "#b3541e" : col;
-    var badges = '<span class="badge '+s.badge[0]+'">'+s.badge[1]+'</span>';
+    var badges = '<span class="badge '+esc(s.badge[0])+'">'+esc(s.badge[1])+'</span>';
     var extra = "";
-    if(s.verify) extra += '<div class="verify">✅ '+s.verify+'</div>';
-    if(s.access) extra += '<span class="access">♿ '+s.access+'</span>';
+    if(s.verify) extra += '<div class="verify">✅ '+esc(s.verify)+'</div>';
+    if(s.access) extra += '<span class="access">♿ '+esc(s.access)+'</span>';
+    var source = s.source ? '<a class="tip-source" href="'+esc(s.source.href)+'" target="_blank" rel="noopener">↗ '+esc(s.source.label)+'</a>' : "";
     html+='<div class="stop'+mealCls+'" id="card-'+i+'" style="border-left-color:'+borderCol+'">'+
-      '<div class="hd" data-focus="'+i+'"><div class="num" style="background:'+borderCol+'">'+s.n+'</div>'+
-      '<div><div class="ttl">'+s.emoji+' '+s.name+' '+badges+'</div>'+
-      '<div class="kind">'+s.kind+'</div></div></div>'+
-      '<div class="desc">'+s.desc+'</div>'+
-      (extra?'<div>'+extra+'</div>':'')+
+      '<button type="button" class="hd" data-focus="'+i+'" aria-expanded="false" aria-controls="detail-'+i+'" aria-label="'+esc(s.name)+' 지도와 상세 일정 열기">'+
+      '<span class="num" style="background:'+borderCol+'">'+esc(s.n)+'</span>'+
+      '<span class="titlecopy"><span class="ttl">'+esc(s.emoji)+' '+esc(s.name)+' '+badges+'</span>'+
+      '<span class="kind">'+esc(s.kind)+'</span></span>'+
+      '<span class="detailhint">일정 · 꿀팁 <span class="chev" aria-hidden="true">⌄</span></span></button>'+
+      '<div class="stop-detail" id="detail-'+i+'" hidden>'+
+        '<div class="stop-tabs" role="tablist" aria-label="'+esc(s.name)+' 상세 정보">'+
+          '<button type="button" class="stop-tab" id="route-tab-'+i+'" role="tab" aria-selected="true" aria-controls="route-panel-'+i+'" tabindex="0" data-tab="route">일정</button>'+
+          '<button type="button" class="stop-tab" id="tip-tab-'+i+'" role="tab" aria-selected="false" aria-controls="tip-panel-'+i+'" tabindex="-1" data-tab="tip">꿀팁</button>'+
+        '</div>'+
+        '<div class="stop-panel" id="route-panel-'+i+'" role="tabpanel" aria-labelledby="route-tab-'+i+'"><div class="desc">'+esc(s.desc)+'</div>'+(extra?'<div>'+extra+'</div>':'')+'</div>'+
+        '<div class="stop-panel stop-tip" id="tip-panel-'+i+'" role="tabpanel" aria-labelledby="tip-tab-'+i+'" hidden><p><b>실전 팁</b> · '+esc(s.tip)+'</p>'+source+'</div>'+
+      '</div>'+
       '<div class="links"><a class="nv" href="'+naverLink(s)+'" target="_blank" rel="noopener">네이버지도</a>'+
       '<a class="kk" href="'+kakaoLink(s)+'" target="_blank" rel="noopener">카카오맵</a></div></div>';
   }
-  var wrap=document.getElementById("stops"); wrap.innerHTML=html;
-  var heads=wrap.querySelectorAll(".hd");
-  for(var j=0;j<heads.length;j++){
-    heads[j].addEventListener("click",function(){
-      var i=parseInt(this.getAttribute("data-focus"),10);
-      var on=document.querySelectorAll(".stop.on"); for(var k=0;k<on.length;k++) on[k].classList.remove("on");
-      var card=document.getElementById("card-"+i); if(card) card.classList.add("on");
-      if(mapOK&&markers[i]){ try{ map.setView(markers[i].getLatLng(),15,{animate:true}); markers[i].openPopup(); }catch(e){} }
-    });
+  document.getElementById("stops").innerHTML=html;
+}
+
+function focusStop(i){
+  var on=document.querySelectorAll(".stop.on"); for(var k=0;k<on.length;k++) on[k].classList.remove("on");
+  var card=document.getElementById("card-"+i); if(card) card.classList.add("on");
+  if(mapOK&&markers[i]){ map.setView(markers[i].getLatLng(),15,{animate:true}); markers[i].openPopup(); }
+}
+function selectStopTab(card, kind){
+  var tabs=card.querySelectorAll(".stop-tab");
+  for(var i=0;i<tabs.length;i++){
+    var selected=tabs[i].getAttribute("data-tab")===kind;
+    tabs[i].setAttribute("aria-selected",selected?"true":"false");
+    tabs[i].setAttribute("tabindex",selected?"0":"-1");
   }
+  card.querySelector("#route-panel-"+card.id.replace("card-","")).hidden=kind!=="route";
+  card.querySelector("#tip-panel-"+card.id.replace("card-","")).hidden=kind!=="tip";
+}
+function setStopExpanded(card, open){
+  var head=card.querySelector(".hd"), detail=card.querySelector(".stop-detail");
+  head.setAttribute("aria-expanded",open?"true":"false");
+  detail.hidden=!open;
+  if(open) selectStopTab(card,"route");
+}
+function bindStopDetails(){
+  var wrap=document.getElementById("stops");
+  wrap.addEventListener("click",function(e){
+    var tab=e.target.closest(".stop-tab");
+    if(tab&&wrap.contains(tab)){
+      selectStopTab(tab.closest(".stop"),tab.getAttribute("data-tab"));
+      return;
+    }
+    var head=e.target.closest(".hd");
+    if(!head||!wrap.contains(head)) return;
+    var card=head.closest(".stop"), wasOpen=head.getAttribute("aria-expanded")==="true";
+    if(!wasOpen){
+      var cards=wrap.querySelectorAll(".stop");
+      for(var i=0;i<cards.length;i++) if(cards[i]!==card) setStopExpanded(cards[i],false);
+    }
+    setStopExpanded(card,!wasOpen);
+    focusStop(parseInt(head.getAttribute("data-focus"),10));
+  });
+  wrap.addEventListener("keydown",function(e){
+    var tab=e.target.closest(".stop-tab");
+    if(!tab||!wrap.contains(tab)||["ArrowLeft","ArrowRight","Home","End"].indexOf(e.key)===-1) return;
+    e.preventDefault();
+    var tabs=tab.closest(".stop-tabs").querySelectorAll(".stop-tab"), index=0;
+    for(var i=0;i<tabs.length;i++) if(tabs[i]===tab) index=i;
+    if(e.key==="ArrowLeft") index=(index+tabs.length-1)%tabs.length;
+    if(e.key==="ArrowRight") index=(index+1)%tabs.length;
+    if(e.key==="Home") index=0;
+    if(e.key==="End") index=tabs.length-1;
+    tabs[index].click(); tabs[index].focus();
+  });
 }
 
 function showMapFail(msg){
@@ -285,9 +387,9 @@ function pinIcon(txt,color,home,meal){
     html:'<div class="'+cls+'" style="'+(meal?"":"background:"+color)+'"><span>'+txt+'</span></div>'});
 }
 function popupHTML(s){
-  return '<div class="pp"><b>'+(s.emoji?s.emoji+" ":"")+s.name+'</b>'+(s.kind?'<br>'+s.kind:'')+
-    '<div class="lk"><a class="nv" href="'+naverLink(s)+'" target="_blank">네이버지도</a>'+
-    '<a class="kk" href="'+kakaoLink(s)+'" target="_blank">카카오맵</a></div></div>';
+  return '<div class="pp"><b>'+esc(s.emoji?s.emoji+" ":"")+esc(s.name)+'</b>'+(s.kind?'<br>'+esc(s.kind):'')+
+    '<div class="lk"><a class="nv" href="'+naverLink(s)+'" target="_blank" rel="noopener">네이버지도</a>'+
+    '<a class="kk" href="'+kakaoLink(s)+'" target="_blank" rel="noopener">카카오맵</a></div></div>';
 }
 function initMap(){
   if(typeof L==="undefined"){ showMapFail("지도 라이브러리를 불러오지 못했어요."); return; }
@@ -299,11 +401,11 @@ function initMap(){
     document.getElementById("baseSwitch").addEventListener("click",function(e){
       var b=e.target.closest("button"); if(!b) return;
       var sel=b.getAttribute("data-base")==="sat"?sat:street; if(sel===curBase) return;
-      try{ map.removeLayer(curBase); sel.addTo(map); curBase=sel; }catch(err){}
+      try{ map.removeLayer(curBase); sel.addTo(map); curBase=sel; }catch(err){ showMapFail("지도를 전환하지 못했어요."); return; }
       var bs=document.querySelectorAll("#baseSwitch button"); for(var i=0;i<bs.length;i++) bs[i].classList.toggle("active",bs[i]===b);
     });
     layer=L.layerGroup().addTo(map); mapOK=true; drawMap();
-    setTimeout(function(){ try{ map.invalidateSize(); }catch(e){} },250);
+    setTimeout(function(){ if(map) map.invalidateSize(); },250);
   }catch(e){ showMapFail("지도를 초기화하지 못했어요."); }
 }
 function drawMap(){
@@ -322,7 +424,7 @@ function drawMap(){
     if(!same) L.marker([hE.lat,hE.lng],{icon:pinIcon(hE.glyph,"#1f2933",true,false)}).bindPopup(popupHTML(hE)).addTo(layer);
     L.polyline(pts,{color:col,weight:3.5,opacity:.65,dashArray:"8,8"}).addTo(layer);
     map.fitBounds(L.latLngBounds(pts).pad(0.15));
-  }catch(e){}
+  }catch(e){ showMapFail("지도를 갱신하지 못했어요."); }
 }
 function render(){ renderList(); drawMap(); }
 
@@ -345,6 +447,7 @@ function render(){ renderList(); drawMap(); }
     b.classList.add("active"); state.track=b.getAttribute("data-track"); render();
   });
 
+  bindStopDetails();
   renderList();
   initMap();
 })();
